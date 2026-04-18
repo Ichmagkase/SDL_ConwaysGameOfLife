@@ -14,7 +14,22 @@ void GoLEngine::step() {
 		for (int x = 0; x < matrix_width; x++) {
 			int index = y * matrix_width + x;
 
-			int alive_neighbors = count_alive_neighbors(game, x, y);
+			int alive_neighbors = count_alive_neighbors(x, y);
+			if (alive_neighbors < 2 || alive_neighbors > 3) {
+				// cell dies
+			}
+			else if (alive_neighbors == 3) {
+				// if cell (x, y) is dead: come alive
+				// else: survive
+			}
+			else if (alive_neighbors == 2) {
+				// if cell (x, y) is alive or new: survive
+				// else: stay dead
+			}
 		}
 	}
+}
+
+int GoLEngine::count_alive_neighbors(int x, int y) {
+
 }
