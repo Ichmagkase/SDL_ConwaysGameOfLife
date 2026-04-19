@@ -11,7 +11,7 @@ private:
 	void InitSDLCore();
 	void InitSDLWindow();
 	SDL_Window* window;
-	SDL_Renderer* renderer;a
+	SDL_Renderer* renderer;
 public:
 	int window_height;
 	int window_width;
