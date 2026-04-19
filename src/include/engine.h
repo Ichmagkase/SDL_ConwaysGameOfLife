@@ -11,7 +11,7 @@ class GoLEngine {
 public:
 	GoLEngine();
 	~GoLEngine();
-	void load_from_config(char* start_data);
+	void load_from_config(const char* start_data);
 	void step();
 	std::vector<CellState> game;
 	std::vector<CellState> next_buffer;
