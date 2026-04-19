@@ -6,8 +6,8 @@
 #include <algorithm>
 
 GoLEngine::GoLEngine() {
-	matrix_width = 1000;
-	matrix_height = 1000;
+	matrix_width = 500;
+	matrix_height = 500;
 	const int matrix_size = matrix_width * matrix_height;
 	
 	game = std::vector<CellState>(matrix_size, CELL_DEAD);
