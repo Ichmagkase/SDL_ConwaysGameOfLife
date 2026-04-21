@@ -71,6 +71,10 @@ void GameRenderer::draw(int width, int height, const std::vector<CellState>& gam
 				cellRect.w = cellWidth;
 				cellRect.h = cellHeight;
 
+				SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, cellWidth, cellHeight);
+				
+
+
 				SDL_RenderFillRect(renderer, &cellRect);
 			}
 		}
