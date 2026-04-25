@@ -3,8 +3,8 @@
 #include <vector>
 
 enum CellState {
-	CELL_ALIVE,
-	CELL_DEAD
+	CELL_DEAD,
+	CELL_ALIVE
 };
 
 class GoLEngine {

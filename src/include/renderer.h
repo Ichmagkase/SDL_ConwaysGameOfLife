@@ -4,15 +4,20 @@
 
 class GameRenderer {
 public:
-	GameRenderer();
+	GameRenderer(GoLEngine &engine);
 	~GameRenderer();
-	void draw(int width, int height, const std::vector<CellState>& game);
-	void run(GoLEngine& engine);
+	void draw();
+	void run();
 private:
 	void InitSDLCore();
 	void InitSDLWindow();
 	SDL_Window* window;
 	SDL_Renderer* renderer;
+	GoLEngine *engine;
+	SDL_Texture* texture;
+	float cellWidth;
+	float cellHeight;
+	std::vector<SDL_FRect> rects;
 public:
 	int window_height;
 	int window_width;

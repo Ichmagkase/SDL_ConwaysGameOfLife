@@ -4,45 +4,50 @@
 #include <string>
 #include <sstream>
 #include <algorithm>
+#include <chrono>
+#include <iostream>
 
 GoLEngine::GoLEngine() {
-	matrix_width = 500;
-	matrix_height = 500;
+	matrix_width = 1920;
+	matrix_height = 1080;
 	const int matrix_size = matrix_width * matrix_height;
 	
 	game = std::vector<CellState>(matrix_size, CELL_DEAD);
+	next_buffer = std::vector<CellState>(matrix_size, CELL_DEAD);
+	
 } 
 
 GoLEngine::~GoLEngine() {}
 
 void GoLEngine::step() {
-	next_buffer.assign(matrix_width * matrix_height, CELL_DEAD);
-	for (int y = 0; y < matrix_height; y++) {
-		for (int x = 0; x < matrix_width; x++) {
-			int index = y * matrix_width + x;
-			int alive_neighbors = count_alive_neighbors(x, y);
-			if (alive_neighbors < 2 || alive_neighbors > 3) {
+	const int width = matrix_width;
+	const int height = matrix_height;
+
+	for (int y = 1; y < height - 1; y++) {
+		for (int x = 1; x < width - 1; x++) {
+			int index = y * width + x;
+
+			int alive_neighbors = 
+				game[index - width - 1] +
+				game[index - width] +
+				game[index - width + 1] +
+				game[index - 1] +
+				game[index + 1] +
+				game[index + width - 1] +
+				game[index + width] +
+				game[index + width + 1];
+
+
+			if (alive_neighbors == 3 || (alive_neighbors == 2 && game[index] == CELL_ALIVE)) {
+				next_buffer[index] = CELL_ALIVE;
+			}
+			else {
 				next_buffer[index] = CELL_DEAD;
-			}
-			else if (alive_neighbors == 3) {
-				if (game[index] == CELL_DEAD) {
-					next_buffer[index] = CELL_ALIVE;
-				}
-				else {
-					next_buffer[index] = CELL_ALIVE;
-				}
-			}
-			else if (alive_neighbors == 2) {
-				if (game[index] == CELL_ALIVE) {
-					next_buffer[index] = CELL_ALIVE;
-				}
-				else {
-					next_buffer[index] = CELL_DEAD;
-				}
 			}
 		}
 	}
-	game = next_buffer;
+
+	game.swap(next_buffer);
 }
 
 int GoLEngine::count_alive_neighbors(int x, int y) {

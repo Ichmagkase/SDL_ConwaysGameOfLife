@@ -5,8 +5,8 @@
 
 int main() {
 	GoLEngine engine;
-	GameRenderer renderer;
+	GameRenderer renderer(engine);
 	engine.load_from_config("infile.txt");
 
-	renderer.run(engine);
+	renderer.run();
 }

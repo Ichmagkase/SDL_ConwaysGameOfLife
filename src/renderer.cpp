@@ -1,10 +1,13 @@
 #include "renderer.h"
 #include <thread>
 #include <chrono>
+#include <iostream>
 
-GameRenderer::GameRenderer() {
-	window_height = 500;
-	window_width = 500;
+GameRenderer::GameRenderer(GoLEngine &gol_engine) {
+	window_width = 1920;
+	window_height = 1080;
+	engine = &gol_engine;
+	rects.reserve(engine->game.size());
 	InitSDLCore();
 	InitSDLWindow();
 }
@@ -22,15 +25,21 @@ void GameRenderer::InitSDLWindow() {
 	SDL_CreateWindowAndRenderer("AudioVis", window_width, window_height, SDL_WINDOW_RESIZABLE, &window, &renderer);
 	SDL_SetRenderLogicalPresentation(renderer, window_width, window_height, SDL_LOGICAL_PRESENTATION_LETTERBOX);
 	SDL_SetRenderVSync(renderer, 1);
+	cellWidth = static_cast<float>(window_width) / engine->matrix_width;
+	cellHeight = static_cast<float>(window_height) / engine->matrix_height;
+	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, cellWidth, cellHeight);
 }
 
-void GameRenderer::run(GoLEngine &engine) {
+void GameRenderer::run() {
 	
 	bool isRunning = true;
 	SDL_Event event;
 
+
 	while (isRunning) {
-		draw(engine.matrix_width, engine.matrix_height, engine.game);
+		auto frame_start = std::chrono::high_resolution_clock::now();
+		draw();
+		auto poll_start = std::chrono::high_resolution_clock::now();
 		while (SDL_PollEvent(&event)) {
 
 			//switch (event.type) {
@@ -41,44 +50,52 @@ void GameRenderer::run(GoLEngine &engine) {
 				isRunning = false;
 			}
 		}
-		engine.step();
-		SDL_Delay(10);
+		auto engine_step_start = std::chrono::high_resolution_clock::now();
+		engine->step();
+		auto end_loop = std::chrono::high_resolution_clock::now();
+		// SDL_Delay(10);
+
+		auto draw_time = std::chrono::duration_cast<std::chrono::microseconds>(
+			poll_start - frame_start
+		);
+		auto poll_event_time = std::chrono::duration_cast<std::chrono::microseconds>(
+			engine_step_start - poll_start
+		);
+		auto step_time = std::chrono::duration_cast<std::chrono::microseconds>(
+			end_loop - engine_step_start
+		);
+
+		std::cout << "Draw time: " << std::setw(6) << draw_time
+			<< " | Poll event time: " << std::setw(6) << poll_event_time
+			<< " | Simulation step time: " << std::setw(6) << step_time
+			<< "\n";
 	}
 
 	SDL_Quit();
 }
 
-void GameRenderer::draw(int width, int height, const std::vector<CellState>& game) {
+void GameRenderer::draw() {
 	SDL_SetRenderDrawColor(renderer, 33, 33, 33, SDL_ALPHA_OPAQUE);
 	SDL_RenderClear(renderer);
+	SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
 
-	// Keep these as floats
-	float cellWidth = static_cast<float>(window_width) / width;
-	float cellHeight = static_cast<float>(window_height) / height;
-	 
-	for (int y = 0; y < height; y++) {
-		for (int x = 0; x < width; x++) {
-			// FIX: GEMINI GENERATED/MODIFIED
-			int index = y * width + x;
+	rects.clear();
 
-			if (game[index] == CellState::CELL_ALIVE) {
-				SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
+	for (int y = 0; y < engine->matrix_height; y++) {
+		for (int x = 0; x < engine->matrix_width; x++) {
+			int index = y * engine->matrix_width + x;
 
-				// Use SDL_FRect instead of SDL_Rect for SDL3
-				SDL_FRect cellRect;
-				cellRect.x = x * cellWidth;
-				cellRect.y = y * cellHeight;
-				cellRect.w = cellWidth;
-				cellRect.h = cellHeight;
-
-				SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, cellWidth, cellHeight);
-				
-
-
-				SDL_RenderFillRect(renderer, &cellRect);
+			if (engine->game[index] == CellState::CELL_ALIVE) {
+				rects.push_back({
+					(float)x * cellWidth,
+					(float)y * cellHeight,
+					(float)cellWidth,
+					(float)cellHeight
+				});
 			}
 		}
 	}
+	SDL_RenderFillRects(renderer, rects.data(), rects.size());
 
 	SDL_RenderPresent(renderer);
 }
